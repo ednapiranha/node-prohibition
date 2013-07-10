@@ -1,4 +1,4 @@
-# Find X at Y
+# Artichoke
 
 A node module that provides a generic API for apps to fulfill tasks such as the following:
 
