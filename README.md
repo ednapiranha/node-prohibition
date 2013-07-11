@@ -16,7 +16,7 @@ If you plan to build the next Yelp or Foursquare, this might be a good start!
     {
         id: 1,
         user: 'jen@myemail.com',
-        location: 'An awesome coffee shop',
+        name: 'An awesome coffee shop',
         content: {
             created: 1368383147,
             ratings: [
