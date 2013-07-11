@@ -3,7 +3,10 @@
   "version": "0.0.1",
   "description": "Generalized find X (thing) at Y (location)",
   "main": "main.js",
-  "dependencies": {},
+  "dependencies": {
+    "levelup": ">= 0.10.0",
+    "leveldown": ">= 0.6.1"
+  },
   "devDependencies": {
     "mocha": ">= 1.9.0",
     "should": ">= 1.2.2"
