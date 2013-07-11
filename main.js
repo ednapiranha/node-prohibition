@@ -15,7 +15,7 @@ var Prohibition = function (options) {
   this.dbPath = options.db;
   this.limit = options.limit - 1 || 10;
 
-  var openDb = function (callback) {
+  var openDb = function openDb(callback) {
     if (!self.db || self.db.isClosed()) {
       levelup(self.dbPath, {
         createIfMissing: true,
@@ -34,7 +34,7 @@ var Prohibition = function (options) {
     }
   };
 
-  var addToArray = function (i, callback) {
+  var addToArray = function addToArray(i, callback) {
     self.get(self.ids[i], function (err, m) {
       if (err) {
         callback(err);
@@ -48,7 +48,7 @@ var Prohibition = function (options) {
     });
   };
 
-  var setAll = function (message, id, callback) {
+  var setAll = function setAll(message, id, callback) {
     self.db.get(KEY + 'ids', function (err, ids) {
       var opts = [];
 
@@ -86,7 +86,7 @@ var Prohibition = function (options) {
     });
   };
 
-  var loadAll = function (ids, callback) {
+  var loadAll = function loadAll(ids, callback) {
     self.messageArray = [];
     self.ids = ids;
 
@@ -99,7 +99,7 @@ var Prohibition = function (options) {
     }
   };
 
-  this.create = function (message, callback) {
+  this.create = function create(message, callback) {
     if (!message || !message.name || !message.user) {
       callback(new Error('Post invalid - you are missing mandatory fields'));
     } else {
@@ -117,7 +117,7 @@ var Prohibition = function (options) {
     }
   };
 
-  this.get = function (id, callback) {
+  this.get = function get(id, callback) {
     openDb(function () {
       self.db.get(KEY + id, function (err, message) {
         if (err || !message) {
@@ -133,13 +133,14 @@ var Prohibition = function (options) {
     });
   };
 
-  this.update = function (message, id, callback) {
+  this.update = function update(message, id, callback) {
     self.get(id, function (err, msg) {
       if (err) {
         callback(err);
       } else {
-        msg.name = message.name;
-        msg.location = message.location;
+        var currId = msg.id;
+        msg = message;
+        msg.id = currId;
 
         var opts = [];
 
@@ -160,7 +161,7 @@ var Prohibition = function (options) {
     });
   };
 
-  this.del = function (id, callback) {
+  this.del = function del(id, callback) {
     openDb(function () {
       id = parseInt(id, 10);
       var opts = [];
@@ -188,7 +189,7 @@ var Prohibition = function (options) {
     });
   };
 
-  this.getAll = function (start, callback) {
+  this.getAll = function getAll(start, callback) {
     openDb(function () {
       start = parseInt(start, 10);
 
@@ -207,7 +208,7 @@ var Prohibition = function (options) {
     });
   };
 
-  this.flush = function (dbPath) {
+  this.flush = function flush(dbPath) {
     leveldown.destroy(dbPath || self.dbPath, function (err) {
       console.log('Deleted database');
     });
