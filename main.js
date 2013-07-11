@@ -49,7 +49,7 @@ var Prohibition = function (options) {
   };
 
   var setAll = function (message, id, callback) {
-    self.db.get(KEY + 'all:ids' + self.keyId, function (err, ids) {
+    self.db.get(KEY + 'ids', function (err, ids) {
       var opts = [];
 
       if (err) {
@@ -67,7 +67,7 @@ var Prohibition = function (options) {
       opts.push({
         type: 'put',
         key: KEY + 'ids',
-        value: id
+        value: ids
       });
 
       opts.push({
@@ -86,8 +86,21 @@ var Prohibition = function (options) {
     });
   };
 
+  var loadAll = function (ids, callback) {
+    self.messageArray = [];
+    self.ids = ids;
+
+    if (self.ids.length > 0) {
+      for (var i = 0; i < self.ids.length; i ++) {
+        addToArray(i, callback);
+      }
+    } else {
+      callback(null, self.messageArray);
+    }
+  };
+
   this.create = function (message, callback) {
-    if (!message) {
+    if (!message || !message.name || !message.user) {
       callback(new Error('Post invalid - you are missing mandatory fields'));
     } else {
       openDb(function () {
@@ -162,13 +175,13 @@ var Prohibition = function (options) {
           callback(err);
         } else {
           ids.splice(ids.indexOf(id), 1);
-
           opts.push({
             type: 'put',
             key: KEY + 'ids',
             value: ids
           });
 
+          self.db.batch(opts);
           callback(null, true);
         }
       });
