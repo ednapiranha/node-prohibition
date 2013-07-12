@@ -6,6 +6,10 @@ var should = require('should');
 var Prohibition = require('../main');
 
 var p = new Prohibition({
+  meta: {
+    address: null,
+    phone: null
+  },
   db: './test/db'
 });
 
@@ -13,6 +17,19 @@ var id;
 var secId;
 
 var message = {
+  user: 'jen@test.com',
+  name: 'test location',
+  content: {
+    ratings: []
+  },
+  location: '37.3882807, -122.0828559'
+};
+
+var messageMerged = {
+  meta: {
+    address: null,
+    phone: null
+  },
   user: 'jen@test.com',
   name: 'test location',
   content: {
@@ -41,7 +58,11 @@ describe('prohibition', function () {
         m.content.should.equal(message.content);
         p.getAll(0, function (err, mArr) {
           mArr.length.should.equal(1);
-          mArr.should.eql([message]);
+          mArr[0].meta.should.eql(messageMerged.meta);
+          mArr[0].user.should.eql(messageMerged.user);
+          mArr[0].content.ratings.length.should.equal(0);
+          mArr[0].location.should.equal(messageMerged.location);
+          should.exist(mArr[0].content.created);
           done();
         });
       });
@@ -68,10 +89,13 @@ describe('prohibition', function () {
     it('updates a message', function (done) {
       p.get(id, function (err, m) {
         message.name = 'new location!';
+        message.meta = {};
+        message.meta.phone = '12345';
 
         setTimeout(function () {
           p.update(message, id, function (err, mt) {
             mt.name.should.equal(message.name);
+            mt.meta.phone.should.equal(message.meta.phone);
             done();
           });
         }, 500);

@@ -14,6 +14,8 @@ var Prohibition = function (options) {
 
   this.dbPath = options.db;
   this.limit = options.limit - 1 || 10;
+  this.message = {};
+  this.message.meta = options.meta;
 
   var openDb = function openDb(callback) {
     if (!self.db || self.db.isClosed()) {
@@ -64,6 +66,10 @@ var Prohibition = function (options) {
       message.id = id;
       message.content.created = Math.round(new Date() / 1000);
 
+      for (var attr in message) {
+        self.message[attr] = message[attr];
+      }
+
       opts.push({
         type: 'put',
         key: KEY + 'ids',
@@ -73,14 +79,14 @@ var Prohibition = function (options) {
       opts.push({
         type: 'put',
         key: KEY + id,
-        value: message
+        value: self.message
       });
 
       self.db.batch(opts, function (err) {
         if (err) {
           callback(err);
         } else {
-          callback(null, message);
+          callback(null, self.message);
         }
       });
     });
@@ -142,19 +148,23 @@ var Prohibition = function (options) {
         msg = message;
         msg.id = currId;
 
+        for (var attr in msg) {
+          self.message[attr] = msg[attr];
+        }
+
         var opts = [];
 
         opts.push({
           type: 'put',
           key: KEY + id,
-          value: msg
+          value: self.message
         });
 
         self.db.batch(opts, function (err) {
           if (err) {
             callback(err);
           } else {
-            callback(null, msg);
+            callback(null, self.message);
           }
         });
       }
