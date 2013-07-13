@@ -27,8 +27,8 @@ var message = {
 
 var messageMerged = {
   meta: {
-    address: null,
-    phone: null
+    address: false,
+    phone: false
   },
   user: 'jen@test.com',
   name: 'test location',
@@ -59,6 +59,7 @@ describe('prohibition', function () {
         p.getAll(0, function (err, mArr) {
           mArr.length.should.equal(1);
           mArr[0].user.should.eql(messageMerged.user);
+          mArr[0].meta.should.eql(messageMerged.meta);
           mArr[0].content.ratings.length.should.equal(0);
           mArr[0].location.should.equal(messageMerged.location);
           should.exist(mArr[0].content.created);
@@ -90,11 +91,13 @@ describe('prohibition', function () {
         message.name = 'new location!';
         message.meta = {};
         message.meta.phone = '12345';
+        message.meta.address = '123 Street';
 
         setTimeout(function () {
           p.update(message, id, function (err, mt) {
             mt.name.should.equal(message.name);
             mt.meta.phone.should.equal(message.meta.phone);
+            mt.meta.address.should.equal(message.meta.address);
             done();
           });
         }, 500);

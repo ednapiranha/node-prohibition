@@ -66,9 +66,13 @@ var Prohibition = function (options) {
       message.id = id;
       message.content.created = Math.round(new Date() / 1000);
 
+      if (!message.meta) {
+        message.meta = {};
+      }
+
       for (var attr in self.message.meta) {
-        if (message.meta && !message.meta[attr]) {
-          message.meta[attr] = self.message.meta[attr];
+        if (!message.meta[attr]) {
+          message.meta[attr] = false;
         }
       }
 
