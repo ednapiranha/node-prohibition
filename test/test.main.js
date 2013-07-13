@@ -58,7 +58,6 @@ describe('prohibition', function () {
         m.content.should.equal(message.content);
         p.getAll(0, function (err, mArr) {
           mArr.length.should.equal(1);
-          mArr[0].meta.should.eql(messageMerged.meta);
           mArr[0].user.should.eql(messageMerged.user);
           mArr[0].content.ratings.length.should.equal(0);
           mArr[0].location.should.equal(messageMerged.location);
