@@ -30,3 +30,9 @@ If you plan to build the next Yelp or Foursquare, this might be a good start!
         },
         location: '37.3882807, -122.0828559'
     }
+
+## How to setup
+
+Install leveldb and install dependencies
+
+    > npm install
