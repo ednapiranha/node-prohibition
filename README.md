@@ -54,15 +54,15 @@ Install [leveldb](https://code.google.com/p/leveldb/downloads/list) and dependen
       limit: 10
     });
 
-meta is a list of extra string fields you would like to include (optional).
+`meta` is a list of extra string fields you would like to include (optional).
 
-db is the path where your leveldb database is located (mandatory).
+`db` is the path where your leveldb database is located (mandatory).
 
-maxRating is the highest value for your rating - defaults to 5 (optional).
+`maxRating` is the highest value for your rating - defaults to 5 (optional).
 
-limit is the maximum number of records to return - defaults to 10 (optional).
+`limit` is the maximum number of records to return - defaults to 10 (optional).
 
-### Create
+### Create a new record
 
     var message = {
       user: 'test@test.com',
@@ -79,7 +79,15 @@ limit is the maximum number of records to return - defaults to 10 (optional).
       }
     });
 
-### Update
+### Get an existing record
+
+    prohibition.get(1, function (err, m) {
+      if (!err) {
+        console.log(m);
+      }
+    });
+
+### Update an existing record
 
     var message = {
       user: 'test@test.com',
@@ -92,7 +100,7 @@ limit is the maximum number of records to return - defaults to 10 (optional).
       }
     });
 
-### Get a paginated list of the most recent
+### Get a paginated list of the most recent records
 
     prohibition.getAll(0, function (err, mArr) {
       if (!err) {
@@ -100,10 +108,14 @@ limit is the maximum number of records to return - defaults to 10 (optional).
       }
     });
 
-### Delete
+### Delete an existing record
 
     prohibition.del(1, function (err, status) {
       if (!err) {
         console.log('deleted!');
       }
     });
+
+### Delete the database
+
+    prohibition.flush();
