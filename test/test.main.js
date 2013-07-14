@@ -39,10 +39,25 @@ p.flush('./test/db');
 
 describe('prohibition', function () {
   describe('.create',  function () {
-    it('creates an invalid message', function (done) {
+    it('creates an invalid message with no message', function (done) {
+      message = null;
+      p.create(message, function (err, m) {
+        should.exist(err);
+        err.toString().should.equal('Error: Post cannot be empty');
+        message = {
+          user: 'jen@test.com',
+          name: 'test location',
+          location: '37.3882807, -122.0828559'
+        };
+        done();
+      });
+    });
+
+    it('creates an invalid message with a missing field', function (done) {
       message.name = null;
       p.create(message, function (err, m) {
         should.exist(err);
+        err.toString().should.equal('Error: Post invalid - you are missing mandatory fields: name, user and/or location');
         done();
       });
     });

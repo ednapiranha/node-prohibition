@@ -126,8 +126,10 @@ var Prohibition = function (options) {
   };
 
   this.create = function create(message, callback) {
-    if (!message || !message.name || !message.user) {
-      callback(new Error('Post invalid - you are missing mandatory fields'));
+    if (!message) {
+      callback(new Error('Post cannot be empty'));
+    } else if (!message.name || !message.user || !message.location) {
+      callback(new Error('Post invalid - you are missing mandatory fields: name, user and/or location'));
     } else {
       openDb(function () {
         self.db.get(KEY + 'ids', function (err, id) {
