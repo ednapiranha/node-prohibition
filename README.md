@@ -26,7 +26,8 @@ If you plan to build the next Yelp or Foursquare, this might be a good start!
                     created: 1368383147,
                     score: 5
                 }
-            ]
+            ],
+            maxRating: 5
         },
         location: '37.3882807, -122.0828559'
     }
@@ -49,12 +50,15 @@ Install [leveldb](https://code.google.com/p/leveldb/downloads/list) and dependen
         phone: null
       },
       db: './db',
+      maxRating: 5,
       limit: 10
     });
 
 meta is a list of extra string fields you would like to include (optional).
 
 db is the path where your leveldb database is located (mandatory).
+
+maxRating is the highest value for your rating - defaults to 5 (optional).
 
 limit is the maximum number of records to return - defaults to 10 (optional).
 

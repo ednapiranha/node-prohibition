@@ -4,6 +4,7 @@ var levelup = require('levelup');
 var leveldown = require('leveldown');
 
 var KEY = 'prohibition:';
+var WHITELIST = ['meta', 'name', 'user', 'location'];
 
 var Prohibition = function (options) {
   var self = this;
@@ -14,8 +15,15 @@ var Prohibition = function (options) {
 
   this.dbPath = options.db;
   this.limit = options.limit - 1 || 10;
-  this.message = {};
-  this.message.meta = options.meta || {};
+  this.message = {
+    meta: options.meta || {},
+    content: {
+      ratings: [],
+      average: 0,
+      maxRating: options.maxRating || 5,
+      totalRatings: 0
+    }
+  };
 
   var openDb = function openDb(callback) {
     if (!self.db || self.db.isClosed()) {
@@ -76,6 +84,12 @@ var Prohibition = function (options) {
         }
       }
 
+      for (var attr in self.message) {
+        if (WHITELIST.indexOf(attr) === -1) {
+          delete self.message[attr];
+        }
+      }
+
       opts.push({
         type: 'put',
         key: KEY + 'ids',
@@ -123,6 +137,9 @@ var Prohibition = function (options) {
             id ++;
           }
 
+          // A new message should not have any rating data set.
+          message.content = self.message.content;
+
           setAll(message, id, callback);
         });
       });
@@ -145,34 +162,77 @@ var Prohibition = function (options) {
     });
   };
 
+  var validateRatings = function validateRatings(ratings, callback) {
+    var count = 0;
+    var ratingLength = ratings.length;
+
+    if (ratingLength > 0) {
+      ratings.forEach(function (rating) {
+        count ++;
+        var user = rating.user.replace(/\s/gi, '');
+        var url = rating.url.replace(/\s/gi, '');
+        var score = rating.score.toString().replace(/[\s]/gi, '');
+
+        if (!user || !url) {
+          callback(new Error('Rating field cannot be empty'));
+        } else if (score.match(/[^0-9]+/gi)) {
+          callback(new Error('Score is not a number'));
+        } else if (parseInt(score, 10) > self.message.content.maxRating) {
+          callback(new Error('Score is higher than the maxRating'));
+        } else {
+          // Update the score total
+          self.message.content.ratings.unshift(rating);
+          self.message.content.totalRatings += parseInt(score, 10);
+          self.message.content.average = self.message.content.totalRatings / self.message.content.ratings.length;
+
+          if (count === ratingLength) {
+            var opts = [];
+
+            opts.push({
+              type: 'put',
+              key: KEY + self.message.id,
+              value: self.message
+            });
+
+            self.db.batch(opts, function (err) {
+              if (err) {
+                callback(err);
+              } else {
+                callback(null, self.message);
+              }
+            });
+          }
+        }
+      });
+    } else {
+      callback(null, self.message);
+    }
+  };
+
   this.update = function update(message, id, callback) {
+    this.message = {
+      meta: options.meta || {},
+      content: {
+        ratings: [],
+        average: 0,
+        maxRating: options.maxRating || 5,
+        totalRatings: 0
+      }
+    };
+
     self.get(id, function (err, msg) {
       if (err) {
         callback(err);
       } else {
-        var currId = msg.id;
-        msg = message;
-        msg.id = currId;
+        self.message = msg;
 
-        for (var attr in msg) {
-          self.message[attr] = msg[attr];
+        for (var attr in message) {
+          if (WHITELIST.indexOf(attr) > -1) {
+            self.message[attr] = message[attr];
+          }
         }
 
-        var opts = [];
-
-        opts.push({
-          type: 'put',
-          key: KEY + id,
-          value: self.message
-        });
-
-        self.db.batch(opts, function (err) {
-          if (err) {
-            callback(err);
-          } else {
-            callback(null, self.message);
-          }
-        });
+        validateRatings(message.content.ratings || [], callback);
       }
     });
   };
@@ -199,7 +259,7 @@ var Prohibition = function (options) {
           });
 
           self.db.batch(opts);
-          callback(null, true);
+          callback(null);
         }
       });
     });
