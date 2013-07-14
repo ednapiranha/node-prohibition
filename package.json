@@ -1,7 +1,7 @@
 {
-  "name": "findXatY",
+  "name": "prohibition",
   "version": "0.0.1",
-  "description": "Generalized find X (thing) at Y (location)",
+  "description": "Generalized location management of items in geolocations",
   "main": "main.js",
   "dependencies": {
     "levelup": ">= 0.10.0",
@@ -16,9 +16,9 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/ednapiranha/node-findXatY.git"
+    "url": "git://github.com/ednapiranha/node-prohibition.git"
   },
-  "keywords": ["geolocation", "locations", "social"],
+  "keywords": ["geolocation", "leveldb", "location", "directory", "reviews", "ratings"],
   "author": "Edna Piranha <jen@ednapiranha.com> (http://ednapiranha.com)",
   "license": "BSD"
 }
