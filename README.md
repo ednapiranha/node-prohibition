@@ -29,7 +29,7 @@ If you plan to build the next Yelp or Foursquare, this might be a good start!
             ],
             maxRating: 5
         },
-        location: '37.3882807, -122.0828559'
+        location: [37.3882807, -122.0828559]
     }
 
 ## How to setup
@@ -70,7 +70,7 @@ Install [leveldb](https://code.google.com/p/leveldb/downloads/list) and dependen
       content: {
         ratings: []
       },
-      location: '37.3882807, -122.0828559'
+      location: [37.3882807, -122.0828559]
     };
 
     prohibition.create(message, function (err, m) {
@@ -103,6 +103,14 @@ Install [leveldb](https://code.google.com/p/leveldb/downloads/list) and dependen
 ### Get a paginated list of the most recent records
 
     prohibition.getAll(0, function (err, mArr) {
+      if (!err) {
+        console.log(mArr);
+      }
+    });
+
+### Get the distance of all records from a specific location
+
+    prohibition.getNearest([37.405992, -122.078515], function (err, mArr) {
       if (!err) {
         console.log(mArr);
       }
