@@ -5,6 +5,11 @@ var leveldown = require('leveldown');
 
 var KEY = 'prohibition:';
 var WHITELIST = ['meta', 'name', 'user', 'location'];
+var RADIUS = 6371 // km
+
+Number.prototype.toRad = function () {
+  return this * Math.PI / 180;
+}
 
 var Prohibition = function (options) {
   var self = this;
@@ -281,6 +286,52 @@ var Prohibition = function (options) {
         } else {
           self.totalAll = ids.length;
           loadAll(ids.slice(start, self.limit + start + 1), callback);
+        }
+      });
+    });
+  };
+
+  this.getNearest = function getNearest(location, callback) {
+    var lat1 = location[0];
+    var lon1 = location[1];
+
+    openDb(function () {
+      self.db.get(KEY + 'ids', function (err, ids) {
+        if (err) {
+          callback(err);
+        } else {
+          loadAll(ids, function (err, messages) {
+            if (err) {
+              callback(err);
+            } else {
+              var locationArr = [];
+
+              messages.forEach(function (msg) {
+                var lat2 = msg.location[0];
+                var lon2 = msg.location[1];
+
+                var x1 = lat2 - lat1;
+                var distLat = x1.toRad();
+                var x2 = lon2 - lon1;
+                var distLon = x2.toRad();
+                var haversineA = Math.sin(distLat / 2) * Math.sin(distLat / 2) +
+                                 Math.cos(lat1.toRad()) * Math.cos(lat2.toRad()) *
+                                 Math.sin(distLon / 2) * Math.sin(distLon / 2);
+                var haversineC = 2 * Math.atan(Math.sqrt(haversineA),
+                                               Math.sqrt(1 - haversineA));
+
+                locationArr.push({
+                  id: msg.id,
+                  location: msg.location,
+                  distance: RADIUS * haversineC
+                });
+
+                if (locationArr.length === messages.length) {
+                  callback(null, locationArr);
+                }
+              });
+            }
+          });
         }
       });
     });

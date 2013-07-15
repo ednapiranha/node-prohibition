@@ -1,6 +1,6 @@
 {
   "name": "prohibition",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Generalized location management of items in geolocations",
   "main": "main.js",
   "dependencies": {
@@ -18,7 +18,7 @@
     "type": "git",
     "url": "git://github.com/ednapiranha/node-prohibition.git"
   },
-  "keywords": ["geolocation", "leveldb", "location", "directory", "reviews", "ratings"],
+  "keywords": ["geolocation", "leveldb", "location", "haversine", "places"],
   "author": "Edna Piranha <jen@ednapiranha.com> (http://ednapiranha.com)",
   "license": "BSD"
 }

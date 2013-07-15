@@ -19,7 +19,7 @@ var secId;
 var message = {
   user: 'jen@test.com',
   name: 'test location',
-  location: '37.3882807, -122.0828559'
+  location: [37.3882807, -122.0828559]
 };
 
 var messageMerged = {
@@ -32,7 +32,7 @@ var messageMerged = {
   content: {
     ratings: []
   },
-  location: '37.3882807, -122.0828559'
+  location: [37.3882807, -122.0828559]
 };
 
 p.flush('./test/db');
@@ -47,7 +47,7 @@ describe('prohibition', function () {
         message = {
           user: 'jen@test.com',
           name: 'test location',
-          location: '37.3882807, -122.0828559'
+          location: [37.3882807, -122.0828559]
         };
         done();
       });
@@ -73,7 +73,7 @@ describe('prohibition', function () {
           mArr[0].user.should.eql(messageMerged.user);
           mArr[0].meta.should.eql(messageMerged.meta);
           mArr[0].content.ratings.length.should.equal(0);
-          mArr[0].location.should.equal(messageMerged.location);
+          mArr[0].location.should.eql(messageMerged.location);
           should.exist(mArr[0].content.created);
           done();
         });
@@ -222,6 +222,15 @@ describe('prohibition', function () {
       p.getAll(0, function (err, mArr) {
         should.exist(mArr);
         mArr.length.should.equal(1);
+        done();
+      });
+    });
+  });
+
+  describe('.getNearest', function () {
+    it('gets the nearest location for all messages', function (done) {
+      p.getNearest([37.405992, -122.078515], function (err, mArr) {
+        mArr[0].distance.should.equal(2.00639228403612);
         done();
       });
     });
