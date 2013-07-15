@@ -1,7 +1,7 @@
 {
   "name": "prohibition",
   "version": "0.0.2",
-  "description": "Generalized location management of items in geolocations",
+  "description": "Generalized geolocation management of places or things",
   "main": "main.js",
   "dependencies": {
     "levelup": ">= 0.10.0",
