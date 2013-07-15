@@ -258,6 +258,13 @@ describe('prohibition', function () {
         done();
       });
     });
+
+    it('does not get the nearest location for all messages', function (done) {
+      p.getNearest('37.405992, -122.078515', function (err, mArr) {
+        err.toString().should.equal('Error: Location coordinates must be in the format of an array [lat, lon]');
+        done();
+      });
+    });
   });
 
   describe('.del', function () {
