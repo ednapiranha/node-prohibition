@@ -130,27 +130,39 @@ var Prohibition = function (options) {
     }
   };
 
-  this.create = function create(message, callback) {
+  var validateProperties = function validateProperties(message, callback) {
     if (!message) {
       callback(new Error('Post cannot be empty'));
     } else if (!message.name || !message.user || !message.location) {
       callback(new Error('Post invalid - you are missing mandatory fields: name, user and/or location'));
+    } else if (!(message.location instanceof Array)) {
+      callback(new Error('Location coordinates must be in the format of an array [lat, lon]'));
     } else {
-      openDb(function () {
-        self.db.get(KEY + 'ids', function (err, id) {
-          if (err) {
-            id = 1;
-          } else {
-            id ++;
-          }
-
-          // A new message should not have any rating data set.
-          message.content = self.message.content;
-
-          setAll(message, id, callback);
-        });
-      });
+      callback(null, message);
     }
+  };
+
+  this.create = function create(message, callback) {
+    validateProperties(message, function (err, msg) {
+      if (err) {
+        callback(err);
+      } else {
+        openDb(function () {
+          self.db.get(KEY + 'ids', function (err, id) {
+            if (err) {
+              id = 1;
+            } else {
+              id ++;
+            }
+
+            // A new message should not have any rating data set.
+            msg.content = self.message.content;
+
+            setAll(msg, id, callback);
+          });
+        });
+      }
+    });
   };
 
   this.get = function get(id, callback) {
@@ -217,29 +229,35 @@ var Prohibition = function (options) {
   };
 
   this.update = function update(message, id, callback) {
-    this.message = {
-      meta: options.meta || {},
-      content: {
-        ratings: [],
-        average: 0,
-        maxRating: options.maxRating || 5,
-        totalRatings: 0
-      }
-    };
-
-    self.get(id, function (err, msg) {
+    validateProperties(message, function (err, msg) {
       if (err) {
         callback(err);
       } else {
-        self.message = msg;
-
-        for (var attr in message) {
-          if (WHITELIST.indexOf(attr) > -1) {
-            self.message[attr] = message[attr];
+        self.message = {
+          meta: options.meta || {},
+          content: {
+            ratings: [],
+            average: 0,
+            maxRating: options.maxRating || 5,
+            totalRatings: 0
           }
-        }
+        };
 
-        validateRatings(message.content.ratings || [], callback);
+        self.get(id, function (err, msg) {
+          if (err) {
+            callback(err);
+          } else {
+            self.message = msg;
+
+            for (var attr in message) {
+              if (WHITELIST.indexOf(attr) > -1) {
+                self.message[attr] = message[attr];
+              }
+            }
+
+            validateRatings(message.content.ratings || [], callback);
+          }
+        });
       }
     });
   };

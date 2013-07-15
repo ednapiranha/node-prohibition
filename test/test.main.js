@@ -62,8 +62,19 @@ describe('prohibition', function () {
       });
     });
 
+    it('creates an invalid message with incorrect coordinates', function (done) {
+      message.name = 'test';
+      message.location = '37.3882807, -122.0828559';
+      p.create(message, function (err, m) {
+        should.exist(err);
+        err.toString().should.equal('Error: Location coordinates must be in the format of an array [lat, lon]');
+        done();
+      });
+    });
+
     it('creates a valid message', function (done) {
       message.name = 'test location';
+      message.location = [37.3882807, -122.0828559];
       p.create(message, function (err, m) {
         should.exist(m);
         id = m.id;
@@ -153,7 +164,20 @@ describe('prohibition', function () {
       });
     });
 
+    it('does not update a message with incorrect coordinates', function (done) {
+      p.get(id, function (err, m) {
+        message.location = '37.3882807, -122.0828559';
+
+        p.update(message, id, function (err, mt) {
+          should.exist(err);
+          err.toString().should.equal('Error: Location coordinates must be in the format of an array [lat, lon]');
+          done();
+        });
+      });
+    });
+
     it('does not add an invalid rating with invalid user', function (done) {
+      message.location = [37.3882807, -122.0828559];
       p.get(id, function (err, m) {
         message.content.ratings = [
           {
