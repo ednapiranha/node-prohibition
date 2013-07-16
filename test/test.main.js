@@ -254,8 +254,13 @@ describe('prohibition', function () {
   describe('.getNearest', function () {
     it('gets the nearest location for all messages', function (done) {
       p.getNearest([37.405992, -122.078515], function (err, mArr) {
-        mArr[0].distance.should.equal(2.00639228403612);
-        done();
+        var m = mArr[0];
+
+        p.get(m, function (err, res) {
+          res.id.should.equal(m);
+          res.location.should.eql(message.location);
+          done();
+        });
       });
     });
 

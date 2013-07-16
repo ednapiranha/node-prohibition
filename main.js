@@ -1,9 +1,10 @@
 'use strict';
 
-var levelup = require('levelup');
-var leveldown = require('leveldown');
+var level = require('level');
+var Places = require('level-places');
+var through = require('through');
 
-var KEY = 'prohibition:';
+var KEY = 'prohibition!';
 var WHITELIST = ['meta', 'name', 'user', 'location'];
 var RADIUS = 6371 // km
 
@@ -30,9 +31,11 @@ var Prohibition = function (options) {
     }
   };
 
+  var places = Places(level(this.dbPath + '-geohashes'));
+
   var openDb = function openDb(callback) {
     if (!self.db || self.db.isClosed()) {
-      levelup(self.dbPath, {
+      level(self.dbPath, {
         createIfMissing: true,
         keyEncoding: 'binary',
         valueEncoding: 'json'
@@ -94,6 +97,8 @@ var Prohibition = function (options) {
           delete self.message[attr];
         }
       }
+
+      places.add(id, message.location[0], message.location[1]);
 
       opts.push({
         type: 'put',
@@ -313,54 +318,23 @@ var Prohibition = function (options) {
     if (!(location instanceof Array)) {
       callback(new Error('Location coordinates must be in the format of an array [lat, lon]'));
     } else {
-      var lat1 = location[0];
-      var lon1 = location[1];
+      var locationArr = [];
+      var stream = places.createReadStream(location[0], location[1], { limit: self.limit });
 
-      openDb(function () {
-        self.db.get(KEY + 'ids', function (err, ids) {
-          if (err) {
-            callback(err);
-          } else {
-            loadAll(ids, function (err, messages) {
-              if (err) {
-                callback(err);
-              } else {
-                var locationArr = [];
+      var write = function write(data) {
+        locationArr.push(data);
+      };
 
-                messages.forEach(function (msg) {
-                  var lat2 = msg.location[0];
-                  var lon2 = msg.location[1];
+      var end = function end() {
+        callback(null, locationArr);
+      };
 
-                  var x1 = lat2 - lat1;
-                  var degLat = x1.toRad();
-                  var x2 = lon2 - lon1;
-                  var degLon = x2.toRad();
-                  var haversineA = Math.sin(degLat / 2) * Math.sin(degLat / 2) +
-                                   Math.cos(lat1.toRad()) * Math.cos(lat2.toRad()) *
-                                   Math.sin(degLon / 2) * Math.sin(degLon / 2);
-                  var haversineC = 2 * Math.atan(Math.sqrt(haversineA),
-                                                 Math.sqrt(1 - haversineA));
-
-                  locationArr.push({
-                    id: msg.id,
-                    location: msg.location,
-                    distance: RADIUS * haversineC
-                  });
-
-                  if (locationArr.length === messages.length) {
-                    callback(null, locationArr);
-                  }
-                });
-              }
-            });
-          }
-        });
-      });
+      stream.pipe(through(write, end));
     }
   };
 
   this.flush = function flush(dbPath) {
-    leveldown.destroy(dbPath || self.dbPath, function (err) {
+    level.destroy(dbPath || self.dbPath, function (err) {
       console.log('Deleted database');
     });
   };
