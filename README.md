@@ -27,7 +27,9 @@ If you plan to build the next Yelp or Foursquare, this might be a good start!
                     score: 5
                 }
             ],
-            maxRating: 5
+            average: 5,
+            maxRating: 5,
+            totalRatings: 1
         },
         location: [37.3882807, -122.0828559]
     }
@@ -67,9 +69,6 @@ Install [leveldb](https://code.google.com/p/leveldb/downloads/list) and dependen
     var message = {
       user: 'test@test.com',
       name: 'test location',
-      content: {
-        ratings: []
-      },
       location: [37.3882807, -122.0828559]
     };
 
