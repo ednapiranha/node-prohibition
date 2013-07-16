@@ -332,12 +332,12 @@ var Prohibition = function (options) {
                   var lon2 = msg.location[1];
 
                   var x1 = lat2 - lat1;
-                  var distLat = x1.toRad();
+                  var degLat = x1.toRad();
                   var x2 = lon2 - lon1;
-                  var distLon = x2.toRad();
-                  var haversineA = Math.sin(distLat / 2) * Math.sin(distLat / 2) +
+                  var degLon = x2.toRad();
+                  var haversineA = Math.sin(degLat / 2) * Math.sin(degLat / 2) +
                                    Math.cos(lat1.toRad()) * Math.cos(lat2.toRad()) *
-                                   Math.sin(distLon / 2) * Math.sin(distLon / 2);
+                                   Math.sin(degLon / 2) * Math.sin(degLon / 2);
                   var haversineC = 2 * Math.atan(Math.sqrt(haversineA),
                                                  Math.sqrt(1 - haversineA));
 
