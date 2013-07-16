@@ -3,6 +3,7 @@
 var level = require('level');
 var Places = require('level-places');
 var through = require('through');
+var Sublevel = require('level-sublevel');
 
 var KEY = 'prohibition!';
 var WHITELIST = ['meta', 'name', 'user', 'location'];
@@ -20,6 +21,7 @@ var Prohibition = function (options) {
   }
 
   this.dbPath = options.db;
+  this.geoDb;
   this.limit = options.limit - 1 || 10;
   this.message = {
     meta: options.meta || {},
@@ -31,22 +33,21 @@ var Prohibition = function (options) {
     }
   };
 
-  var places = Places(level(this.dbPath + '-geohashes'));
-
   var openDb = function openDb(callback) {
     if (!self.db || self.db.isClosed()) {
-      level(self.dbPath, {
+      Sublevel(level(self.dbPath, {
         createIfMissing: true,
         keyEncoding: 'binary',
         valueEncoding: 'json'
       }, function (err, lp) {
         if (lp) {
           self.db = lp;
+          self.geoDb = Places(self.db.sublevel('geohash'));
           callback();
         } else {
           openDb(callback);
         }
-      });
+      }));
     } else {
       callback();
     }
@@ -98,7 +99,7 @@ var Prohibition = function (options) {
         }
       }
 
-      places.add(id, message.location[0], message.location[1]);
+      self.geoDb.add(id, message.location[0], message.location[1]);
 
       opts.push({
         type: 'put',
@@ -319,7 +320,7 @@ var Prohibition = function (options) {
       callback(new Error('Location coordinates must be in the format of an array [lat, lon]'));
     } else {
       var locationArr = [];
-      var stream = places.createReadStream(location[0], location[1], { limit: self.limit });
+      var stream = self.geoDb.createReadStream(location[0], location[1], { limit: self.limit });
 
       var write = function write(data) {
         locationArr.push(data);
