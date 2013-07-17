@@ -21,7 +21,7 @@
     "type": "git",
     "url": "git://github.com/ednapiranha/node-prohibition.git"
   },
-  "keywords": ["geolocation", "leveldb", "location", "haversine", "places"],
+  "keywords": ["geolocation", "leveldb", "location", "places"],
   "author": "Edna Piranha <jen@ednapiranha.com> (http://ednapiranha.com)",
   "license": "BSD"
 }
