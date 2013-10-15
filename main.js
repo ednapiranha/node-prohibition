@@ -7,11 +7,11 @@ var Sublevel = require('level-sublevel');
 
 var KEY = 'prohibition!';
 var WHITELIST = ['meta', 'name', 'user', 'location'];
-var RADIUS = 6371 // km
+var RADIUS = 6371; // km
 
 Number.prototype.toRad = function () {
   return this * Math.PI / 180;
-}
+};
 
 var Prohibition = function (options) {
   var self = this;
@@ -158,6 +158,11 @@ var Prohibition = function (options) {
             if (err) {
               id = 1;
             } else {
+              // I don't know if this is right, but for some reason it wasn't
+              // getting the latest id and adding to it. Instead it was getting
+              // something (null) and ++ to it so it wasn't working. I'm still
+              // not sure if it was my fault or if this was a bug though
+              id = Number(id[0]);
               id ++;
             }
 
