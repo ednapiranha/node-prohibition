@@ -3,11 +3,11 @@
 var level = require('level');
 var Places = require('level-places');
 var through = require('through');
+var paginate = require('level-paginate');
 var Sublevel = require('level-sublevel');
 
 var KEY = 'prohibition!';
 var WHITELIST = ['meta', 'name', 'user', 'location'];
-var RADIUS = 6371 // km
 
 Number.prototype.toRad = function () {
   return this * Math.PI / 180;
@@ -22,6 +22,10 @@ var Prohibition = function (options) {
 
   this.dbPath = options.db;
   this.geoDb;
+  this.db = Sublevel(level(this.dbPath, {
+    createIfMissing: true,
+    valueEncoding: 'json'
+  }));
   this.limit = options.limit - 1 || 10;
   this.message = {
     meta: options.meta || {},
@@ -33,110 +37,42 @@ var Prohibition = function (options) {
     }
   };
 
-  var openDb = function openDb(callback) {
-    if (!self.db || self.db.isClosed()) {
-      Sublevel(level(self.dbPath, {
-        createIfMissing: true,
-        keyEncoding: 'binary',
-        valueEncoding: 'json'
-      }, function (err, lp) {
-        if (lp) {
-          self.db = lp;
-          self.geoDb = Places(self.db.sublevel('geohash'));
-          callback();
-        } else {
-          openDb(callback);
-        }
-      }));
-    } else {
-      callback();
-    }
-  };
+  this.geoDb = Places(this.db.sublevel('geohash'));
 
-  var addToArray = function addToArray(i, callback) {
-    self.get(self.ids[i], function (err, m) {
+  var setAll = function (message, callback) {
+    message.id = Date.now();
+
+    if (!message.meta) {
+      message.meta = {};
+    }
+
+    for (var attr in self.message.meta) {
+      if (!message.meta[attr]) {
+        message.meta[attr] = false;
+      }
+    }
+
+    for (var attr in self.message) {
+      if (WHITELIST.indexOf(attr) === -1) {
+        delete message[attr];
+      }
+    }
+
+    // A new message should not have any rating data set.
+    message.content = self.message.content;
+    message.content.created = Math.round(new Date() / 1000);
+
+    self.geoDb.add(message.id, message.location[0], message.location[1]);
+    self.db.put(KEY + message.id, message, function (err) {
       if (err) {
         callback(err);
       } else {
-        self.messageArray.push(m);
-      }
-
-      if (self.messageArray.length === self.ids.length) {
-        callback(null, self.messageArray);
+        callback(null, message);
       }
     });
   };
 
-  var setAll = function setAll(message, id, callback) {
-    self.db.get(KEY + 'ids', function (err, ids) {
-      var opts = [];
-
-      if (err) {
-        // Not created, so create a new array
-        ids = [id];
-      } else {
-        if (ids.indexOf(id) === -1) {
-          ids.unshift(id);
-        }
-      }
-
-      message.id = id;
-      message.content.created = Math.round(new Date() / 1000);
-
-      if (!message.meta) {
-        message.meta = {};
-      }
-
-      for (var attr in self.message.meta) {
-        if (!message.meta[attr]) {
-          message.meta[attr] = false;
-        }
-      }
-
-      for (var attr in self.message) {
-        if (WHITELIST.indexOf(attr) === -1) {
-          delete self.message[attr];
-        }
-      }
-
-      self.geoDb.add(id, message.location[0], message.location[1]);
-
-      opts.push({
-        type: 'put',
-        key: KEY + 'ids',
-        value: ids
-      });
-
-      opts.push({
-        type: 'put',
-        key: KEY + id,
-        value: message
-      });
-
-      self.db.batch(opts, function (err) {
-        if (err) {
-          callback(err);
-        } else {
-          callback(null, message);
-        }
-      });
-    });
-  };
-
-  var loadAll = function loadAll(ids, callback) {
-    self.messageArray = [];
-    self.ids = ids;
-
-    if (self.ids.length > 0) {
-      for (var i = 0; i < self.ids.length; i ++) {
-        addToArray(i, callback);
-      }
-    } else {
-      callback(null, self.messageArray);
-    }
-  };
-
-  var validateProperties = function validateProperties(message, callback) {
+  var validateProperties = function (message, callback) {
     if (!message) {
       callback(new Error('Post cannot be empty'));
     } else if (!message.name || !message.user || !message.location) {
@@ -148,46 +84,31 @@ var Prohibition = function (options) {
     }
   };
 
-  this.create = function create(message, callback) {
+  this.create = function (message, callback) {
     validateProperties(message, function (err, msg) {
       if (err) {
         callback(err);
       } else {
-        openDb(function () {
-          self.db.get(KEY + 'ids', function (err, id) {
-            if (err) {
-              id = 1;
-            } else {
-              id ++;
-            }
-
-            // A new message should not have any rating data set.
-            msg.content = self.message.content;
-
-            setAll(msg, id, callback);
-          });
-        });
+        setAll(msg, callback);
       }
     });
   };
 
-  this.get = function get(id, callback) {
-    openDb(function () {
-      self.db.get(KEY + id, function (err, message) {
-        if (err || !message) {
-          callback(new Error('Not found ', err));
+  this.get = function (id, callback) {
+    self.db.get(KEY + id, function (err, message) {
+      if (err || !message) {
+        callback(new Error('Not found ', err));
+      } else {
+        if (typeof message === 'object') {
+          callback(null, message);
         } else {
-          if (typeof message === 'object') {
-            callback(null, message);
-          } else {
-            callback(new Error('Invalid JSON'));
-          }
+          callback(new Error('Invalid JSON'));
         }
-      });
+      }
     });
   };
 
-  var validateRatings = function validateRatings(ratings, callback) {
+  var validateRatings = function (ratings, callback) {
     var count = 0;
     var ratingLength = ratings.length;
 
@@ -234,7 +155,7 @@ var Prohibition = function (options) {
     }
   };
 
-  this.update = function update(message, id, callback) {
+  this.update = function (message, id, callback) {
     validateProperties(message, function (err, msg) {
       if (err) {
         callback(err);
@@ -268,54 +189,38 @@ var Prohibition = function (options) {
     });
   };
 
-  this.del = function del(id, callback) {
-    openDb(function () {
-      id = parseInt(id, 10);
-      var opts = [];
+  this.del = function (id, callback) {
+    id = parseInt(id, 10);
 
-      opts.push({
-        type: 'del',
-        key: KEY + id
-      });
-
-      self.db.get(KEY + 'ids', function (err, ids) {
-        if (err) {
-          callback(err);
-        } else {
-          ids.splice(ids.indexOf(id), 1);
-          opts.push({
-            type: 'put',
-            key: KEY + 'ids',
-            value: ids
-          });
-
-          self.db.batch(opts);
-          callback(null);
-        }
-      });
-    });
+    self.db.del(KEY + id);
+    callback(null);
   };
 
   this.getAll = function getAll(start, callback) {
-    openDb(function () {
-      start = parseInt(start, 10);
+    start = parseInt(start, 10);
 
-      if (isNaN(start)) {
-        start = 0;
-      }
+    if (isNaN(start)) {
+      start = 0;
+    }
 
-      self.db.get(KEY + 'ids', function (err, ids) {
-        if (err) {
-          callback(err);
-        } else {
-          self.totalAll = ids.length;
-          loadAll(ids.slice(start, self.limit + start + 1), callback);
-        }
-      });
+    self.messageArray = [];
+
+    paginate(self.db, KEY, {
+
+      page: start,
+      num: self.limit
+    }).on('data', function (data) {
+
+      self.messageArray.push(data);
+    }).on('error', function (err) {
+
+      callback(err);
+    }).on('end', function () {
+      callback(null, self.messageArray);
     });
   };
 
-  this.getNearest = function getNearest(location, callback) {
+  this.getNearest = function (location, callback) {
     if (!(location instanceof Array)) {
       callback(new Error('Location coordinates must be in the format of an array [lat, lon]'));
     } else {
@@ -332,12 +237,6 @@ var Prohibition = function (options) {
 
       stream.pipe(through(write, end));
     }
-  };
-
-  this.flush = function flush(dbPath) {
-    level.destroy(dbPath || self.dbPath, function (err) {
-      console.log('Deleted database');
-    });
   };
 };
 

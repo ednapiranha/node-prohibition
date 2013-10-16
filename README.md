@@ -34,9 +34,7 @@ If you plan to build the next Yelp or Foursquare, this might be a good start!
         location: [37.3882807, -122.0828559]
     }
 
-## How to setup
-
-Install [leveldb](https://code.google.com/p/leveldb/downloads/list) and dependencies
+## Install node modules
 
     > npm install
 
@@ -99,7 +97,7 @@ Install [leveldb](https://code.google.com/p/leveldb/downloads/list) and dependen
       }
     });
 
-### Get a paginated list of the most recent records
+### Get a paginated list of the most recent records, where the first parameter is the page (e.g. 0, 1, 2)
 
     prohibition.getAll(0, function (err, mArr) {
       if (!err) {
@@ -122,7 +120,3 @@ Install [leveldb](https://code.google.com/p/leveldb/downloads/list) and dependen
         console.log('deleted!');
       }
     });
-
-### Delete the database
-
-    prohibition.flush();

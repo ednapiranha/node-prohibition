@@ -1,14 +1,15 @@
 {
   "name": "prohibition",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Generalized geolocation management of places or things",
   "main": "main.js",
   "dependencies": {
     "level": ">= 0.10.0",
     "level-places": ">= 0.0.3",
     "through": ">= 2.3.4",
-    "level-sublevel": "4.7.1",
-    "leveldown": ">= 0.6.2"
+    "level-sublevel": ">= 4.7.1",
+    "leveldown": ">= 0.6.2",
+    "level-paginate": "*"
   },
   "devDependencies": {
     "mocha": ">= 1.9.0",

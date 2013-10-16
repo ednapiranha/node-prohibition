@@ -3,6 +3,7 @@
 process.env.NODE_ENV = 'test';
 
 var should = require('should');
+var child = require('child_process');
 var Prohibition = require('../main');
 
 var p = new Prohibition({
@@ -35,9 +36,11 @@ var messageMerged = {
   location: [37.3882807, -122.0828559]
 };
 
-p.flush('./test/db');
-
 describe('prohibition', function () {
+  after(function () {
+    child.exec('rm -rf ./test/db');
+  });
+
   describe('.create',  function () {
     it('creates an invalid message with no message', function (done) {
       message = null;
