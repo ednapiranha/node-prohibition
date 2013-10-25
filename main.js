@@ -22,6 +22,7 @@ var Prohibition = function (options) {
 
   this.dbPath = options.db;
   this.geoDb;
+  this.totalRecords = 0;
   this.db = Sublevel(level(this.dbPath, {
     createIfMissing: true,
     valueEncoding: 'json'
@@ -237,6 +238,15 @@ var Prohibition = function (options) {
 
       stream.pipe(through(write, end));
     }
+  };
+
+  this.getTotalRecords = function (callback) {
+    self.db.createKeyStream()
+      .on('data', function (data) {
+        self.totalRecords += 1;
+      }).on('end', function () {
+        callback(null, self.totalRecords);
+      });
   };
 };
 
