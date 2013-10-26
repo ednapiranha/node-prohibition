@@ -293,4 +293,15 @@ describe('prohibition', function () {
       });
     });
   });
+
+  describe('.getTotalRecords' function () {
+    it('gets total records', function (done) {
+      p.getTotalRecords(function (err, records) {
+        should.exists(records);
+        records.should.not.be.NaN;
+        records.should.not.be.below(0);
+        done();
+      });
+    });
+  });
 });
