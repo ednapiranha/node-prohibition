@@ -105,6 +105,13 @@ If you plan to build the next Yelp or Foursquare, this might be a good start!
       }
     });
 
+### Get total amount of records
+    prohibition.getTotalRecords(function (err, tRecords) {
+        if (!err) {
+          console.log(tRecords);
+        }
+      });
+
 ### Get the distance of all records from a specific location
 
     prohibition.getNearest([37.405992, -122.078515], function (err, mArr) {
