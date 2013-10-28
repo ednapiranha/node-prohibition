@@ -1,6 +1,6 @@
 {
   "name": "prohibition",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "Generalized geolocation management of places or things",
   "main": "main.js",
   "dependencies": {
