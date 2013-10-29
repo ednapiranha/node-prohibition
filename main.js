@@ -246,6 +246,7 @@ var Prohibition = function (options) {
         self.totalRecords += 1;
       }).on('end', function () {
         callback(null, self.totalRecords);
+        self.totalRecords = 0;
       }).on('error', function (err) {
         callback(err);
       });
