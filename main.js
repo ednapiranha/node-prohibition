@@ -249,6 +249,7 @@ var Prohibition = function (options) {
         self.totalRecords = 0;
       }).on('error', function (err) {
         callback(err);
+        self.totalRecords = 0;
       });
   };
 };
