@@ -53,7 +53,7 @@ var Prohibition = function (options) {
       }
     }
 
-    for (var attr in self.message) {
+    for (var attr in message) {
       if (WHITELIST.indexOf(attr) === -1) {
         delete message[attr];
       }
