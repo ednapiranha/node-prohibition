@@ -183,7 +183,7 @@ var Prohibition = function (options) {
               }
             }
 
-            validateRatings(message.content.ratings || [], callback);
+            validateRatings(self.message.content.ratings || [], callback);
           }
         });
       }
